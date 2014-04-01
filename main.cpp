@@ -11,6 +11,20 @@ enum direction{
 	HORIZONTAL = 'H'
 };
 
+
+void draw_game();
+void input(int &command, const char* command_name);
+bool place_item(int row, int col, direction dir, bool silent);
+void remove_item(int row, int col, direction dir);
+int get_possibilities(direction dir);
+void computer();
+int max(int recursivity, direction dir, int &ri, int &rj);
+int min(int recursivity, direction dir);
+void minmax(int recursivity, direction player);
+int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
+int megamax(int recursivity, direction dir, int &ri, int &rj);
+
+
 void draw_game(){
 	std::cout << " _";
 	for(int i = 0; i < col_count; i++){
@@ -82,8 +96,6 @@ int get_possibilities(direction dir){
 
 	return sum;
 }
-int max(int recursivity, direction dir, int &ri, int &rj);
-
 
 int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
 	if(recursivity == 0)
