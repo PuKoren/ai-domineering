@@ -79,6 +79,57 @@ int getPossibilities(direction dir){
 	}
 	return sum;
 }
+int max(int recursivity, direction dir, int &ri, int &rj);
+
+int min(int recursivity, direction dir){
+	if(recursivity == 0)
+		return getPossibilities(dir);
+
+	int eval = col_count * row_count;
+	int ri;
+	int rj;
+	for(int i = 0; i < row_count; i ++){
+		for(int j = 0; j < col_count; j ++){
+			if(place_item(i, j, dir, true)){
+				int l = max(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), ri, rj);
+				remove_item(i, j, dir);
+				if(l < eval)
+					eval = l;
+			}
+		}
+	}
+	return eval;
+}
+
+int max(int recursivity, direction dir, int &ri, int &rj){
+	if(recursivity == 0)
+		return getPossibilities(dir);
+
+	int eval = -1;
+	for(int i = 0; i < row_count; i ++){
+		for(int j = 0; j < col_count; j ++){
+			if(place_item(i, j, dir, true)){
+				int l = min(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL));
+				remove_item(i, j, dir);
+				if(l > eval){
+					eval = l;
+					ri = i;
+					rj = j;
+				}
+			}
+		}
+	}
+	return eval;
+}
+
+void minmax(int recursivity, direction player){
+	std::cout << "Computer turn using MinMax..." << std::endl;
+	int i = 0;
+	int j = 0;
+	int maximum = max(recursivity, player, i, j);
+	std::cout << "i: " << i << "j: " << j << " with maximum: "<< maximum << std::endl;
+	place_item(i, j, player, true);
+}
 
 void computer(){
 	std::cout << "Computer turn..." << std::endl;
@@ -131,7 +182,7 @@ int main(int argc, char** argv){
 						std::cout << "You win." << std::endl;
 						break;
 					}
-					computer();
+					minmax(3, HORIZONTAL);
 				}
 			}
 		}
