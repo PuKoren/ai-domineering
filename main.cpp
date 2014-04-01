@@ -85,27 +85,29 @@ int get_possibilities(direction dir){
 int max(int recursivity, direction dir, int &ri, int &rj);
 
 
-int alphabeta(int recursivity, direction dir, int &ri, int &rj){
+int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
 	if(recursivity == 0)
 		return get_possibilities(dir);
 
-	int eval = -row_count*col_count;
 	int fi = 0;
 	int fj = 0;
 	for(int i = 0; i < row_count; i ++){
 		for(int j = 0; j < col_count; j ++){
 			if(place_item(i, j, dir, true)){
-				int l = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj);
+				int l = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
 				remove_item(i, j, dir);
-				if(l > eval){
-					eval = l;
+				if(l > alpha){
+					alpha = l;
 					ri = i;
 					rj = j;
+					if(alpha >= beta){
+						return beta;
+					}
 				}
 			}
 		}
 	}
-	return eval;
+	return alpha;
 }
 
 int megamax(int recursivity, direction dir, int &ri, int &rj){
@@ -233,16 +235,15 @@ int main(int argc, char** argv){
 					//REGULAR
 					//computer();
 					//MINIMAX
-					minmax(MINMAX_RECURSIVITY, HORIZONTAL);
+					//minmax(MINMAX_RECURSIVITY, HORIZONTAL);
 					//MEGAMAX & ALPHABETA
-					/*int i = 0;
+					int i = 0;
 					int j = 0;
 					std::cout << "Computer turn using alphabeta..." << std::endl;
 					//megaxmax(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
-					alphabeta(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
+					alphabeta(MINMAX_RECURSIVITY, HORIZONTAL, i, j, -row_count*col_count, row_count*col_count);
 					std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
-					place_item(i, j, HORIZONTAL, true);*/
-					
+					place_item(i, j, HORIZONTAL, true);
 				}
 			}
 		}
