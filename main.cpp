@@ -145,7 +145,7 @@ int megamax(int recursivity, direction dir, int &ri, int &rj){
 
 int min(int recursivity, direction dir){
 	if(recursivity == 0)
-		return get_possibilities(HORIZONTAL);
+		return get_possibilities(HORIZONTAL) - get_possibilities(VERTICAL);
 
 	int eval = row_count*col_count;
 	int ri;
@@ -165,7 +165,7 @@ int min(int recursivity, direction dir){
 
 int max(int recursivity, direction dir, int &ri, int &rj){
 	if(recursivity == 0)
-		return get_possibilities(HORIZONTAL);
+		return get_possibilities(HORIZONTAL) - get_possibilities(VERTICAL);
 
 	int eval = -col_count * row_count;
 	for(int i = 0; i < row_count; i ++){
