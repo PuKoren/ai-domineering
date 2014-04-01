@@ -62,7 +62,7 @@ void remove_item(int row, int col, direction dir){
 	}
 }
 
-int getPossibilities(direction dir){
+int get_possibilities(direction dir){
 	int sum = 0;
 	int row_m = 0;
 	int col_m = 0;
@@ -87,13 +87,15 @@ int max(int recursivity, direction dir, int &ri, int &rj);
 
 int alphabeta(int recursivity, direction dir, int &ri, int &rj){
 	if(recursivity == 0)
-		return getPossibilities(dir);
+		return get_possibilities(dir);
 
 	int eval = -row_count*col_count;
+	int fi = 0;
+	int fj = 0;
 	for(int i = 0; i < row_count; i ++){
 		for(int j = 0; j < col_count; j ++){
 			if(place_item(i, j, dir, true)){
-				int l = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), ri, rj);
+				int l = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj);
 				remove_item(i, j, dir);
 				if(l > eval){
 					eval = l;
@@ -108,7 +110,7 @@ int alphabeta(int recursivity, direction dir, int &ri, int &rj){
 
 int megamax(int recursivity, direction dir, int &ri, int &rj){
 	if(recursivity == 0)
-		return getPossibilities(dir);
+		return get_possibilities(dir);
 
 	int eval = -row_count*col_count;
 	for(int i = 0; i < row_count; i ++){
@@ -129,7 +131,7 @@ int megamax(int recursivity, direction dir, int &ri, int &rj){
 
 int min(int recursivity, direction dir){
 	if(recursivity == 0)
-		return getPossibilities(dir);
+		return get_possibilities(HORIZONTAL);
 
 	int eval = row_count*col_count;
 	int ri;
@@ -149,7 +151,7 @@ int min(int recursivity, direction dir){
 
 int max(int recursivity, direction dir, int &ri, int &rj){
 	if(recursivity == 0)
-		return getPossibilities(dir);
+		return get_possibilities(HORIZONTAL);
 
 	int eval = -col_count * row_count;
 	for(int i = 0; i < row_count; i ++){
@@ -186,7 +188,7 @@ void computer(){
 	for(int i = 0; i < row_count; i ++){
 		for(int j = 0; j < col_count; j ++){
 			if(place_item(i, j, HORIZONTAL, true)){
-				int sP = getPossibilities(HORIZONTAL) - getPossibilities(VERTICAL);
+				int sP = get_possibilities(HORIZONTAL) - get_possibilities(VERTICAL);
 				remove_item(i, j, HORIZONTAL);
 				if(sP > max){
 					max = sP;
@@ -213,7 +215,7 @@ int main(int argc, char** argv){
 	while(command != 0 || !validated){
 		draw_game();
 		std::cout << "Player turn..." << std::endl;
-		if(getPossibilities(VERTICAL) == 0){
+		if(get_possibilities(VERTICAL) == 0){
 			std::cout << "You lost." << std::endl;
 			break;
 		}
@@ -224,21 +226,22 @@ int main(int argc, char** argv){
 			if(command > 0 && command <= col_count){
 				validated = place_item(command-1, col-1, VERTICAL, false);
 				if(validated){
-					if(getPossibilities(HORIZONTAL) == 0){
+					if(get_possibilities(HORIZONTAL) == 0){
 						std::cout << "You win." << std::endl;
 						break;
 					}
 					//REGULAR
 					//computer();
 					//MINIMAX
-					//minmax(MINMAX_RECURSIVITY, HORIZONTAL);
-					//MEGAMAX
-					int i = 0;
+					minmax(MINMAX_RECURSIVITY, HORIZONTAL);
+					//MEGAMAX & ALPHABETA
+					/*int i = 0;
 					int j = 0;
-					std::cout << "Computer turn using megamax..." << std::endl;
-					megamax(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
-					std::cout << "Placed item on column " << i+1 << ", row " << j+1 << std::endl;
-					place_item(i, j, HORIZONTAL, true);
+					std::cout << "Computer turn using alphabeta..." << std::endl;
+					//megaxmax(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
+					alphabeta(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
+					std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
+					place_item(i, j, HORIZONTAL, true);*/
 					
 				}
 			}
