@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#define RECURSIVITY 3
+#define RECURSIVITY 5
 
 std::vector<std::vector<char> > board;
 
@@ -20,11 +20,13 @@ int get_possibilities(direction dir);
 void computer();
 int max(int recursivity, direction dir, int &ri, int &rj);
 int min(int recursivity, direction dir);
+int alphabetakiller(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
+void alphabetakiller(int recursivity, direction dir);
 void minimax(int recursivity, direction player);
 void alphabeta(int recursivity, direction dir);
 int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
-void megamax(int recursivity, direction dir);
-int megamax(int recursivity, direction dir, int &ri, int &rj);
+void negamax(int recursivity, direction dir);
+int negamax(int recursivity, direction dir, int &ri, int &rj);
 
 
 void draw_game(){
@@ -99,19 +101,51 @@ int get_possibilities(direction dir){
 	return sum;
 }
 
-int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
+
+struct killer_move{
+	int i;
+	int j;
+	direction dir;
+};
+
+std::vector<killer_move*> moves;
+
+int alphabetakiller(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
 	if(recursivity == 0)
-		return get_possibilities(dir);
+		return get_possibilities(dir) - ((dir==HORIZONTAL)?get_possibilities(VERTICAL):get_possibilities(HORIZONTAL));
+
 
 	int fi = 0;
 	int fj = 0;
+	if(moves.size() == 0){
+		moves.resize(recursivity);
+		moves.assign(recursivity, NULL);
+	}else{
+		if(moves[recursivity-1] != NULL){
+			if(place_item(moves[recursivity-1]->i, moves[recursivity-1]->j, dir, true)){
+				int l = -alphabetakiller(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
+				remove_item(moves[recursivity-1]->i, moves[recursivity-1]->j, dir);
+				if(l > alpha){
+					alpha = l;
+					ri = moves[recursivity-1]->i;
+					rj = moves[recursivity-1]->j;
+					if(alpha >= beta){
+						return beta;
+					}
+				}
+			}
+		}
+	}
+
 	for(int i = 0; i < row_count; i ++){
 		for(int j = 0; j < col_count; j ++){
 			if(place_item(i, j, dir, true)){
-				int l = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
+				int l = -alphabetakiller(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
 				remove_item(i, j, dir);
 				if(l > alpha){
 					alpha = l;
+					delete moves[recursivity-1];
+					moves[recursivity-1] = new killer_move{ri, rj, dir};
 					ri = i;
 					rj = j;
 					if(alpha >= beta){
@@ -124,15 +158,40 @@ int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int b
 	return alpha;
 }
 
-int megamax(int recursivity, direction dir, int &ri, int &rj){
+int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
 	if(recursivity == 0)
-		return get_possibilities(dir);
+		return get_possibilities(dir) - ((dir==HORIZONTAL)?get_possibilities(VERTICAL):get_possibilities(HORIZONTAL));
+
+	int fi = 0;
+	int fj = 0;
+	for(int i = 0; i < row_count; i ++){
+		for(int j = 0; j < col_count; j ++){
+			if(place_item(i, j, dir, true)){
+				int e = -alphabeta(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
+				remove_item(i, j, dir);
+				if(e > alpha){
+					alpha = e;
+					ri = i;
+					rj = j;
+					if(alpha >= beta){
+						return beta;
+					}
+				}
+			}
+		}
+	}
+	return alpha;
+}
+
+int negamax(int recursivity, direction dir, int &ri, int &rj){
+	if(recursivity == 0)
+		return get_possibilities(dir) - ((dir==HORIZONTAL)?get_possibilities(VERTICAL):get_possibilities(HORIZONTAL));
 
 	int eval = -row_count*col_count;
 	for(int i = 0; i < row_count; i ++){
 		for(int j = 0; j < col_count; j ++){
 			if(place_item(i, j, dir, true)){
-				int l = -megamax(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), ri, rj);
+				int l = -negamax(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), ri, rj);
 				remove_item(i, j, dir);
 				if(l > eval){
 					eval = l;
@@ -186,12 +245,20 @@ int max(int recursivity, direction dir, int &ri, int &rj){
 	return eval;
 }
 
-
-void megamax(int recursivity, direction dir){
+void alphabetakiller(int recursivity, direction dir){
 	int i = 0;
 	int j = 0;
-	std::cout << "Computer turn using megamax..." << std::endl;
-	megamax(RECURSIVITY, HORIZONTAL, i, j);
+	std::cout << "Computer turn using alphabetakiller..." << std::endl;
+	alphabetakiller(RECURSIVITY, HORIZONTAL, i, j, -row_count*col_count, row_count*col_count);
+	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
+	place_item(i, j, HORIZONTAL, true);
+}
+
+void negamax(int recursivity, direction dir){
+	int i = 0;
+	int j = 0;
+	std::cout << "Computer turn using negamax..." << std::endl;
+	negamax(RECURSIVITY, HORIZONTAL, i, j);
 	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
 	place_item(i, j, HORIZONTAL, true);
 }
@@ -208,7 +275,7 @@ void alphabeta(int recursivity, direction dir){
 void minimax(int recursivity, direction player){
 	int i = 0;
 	int j = 0;
-	std::cout << "Computer turn using MiniMax..." << std::endl;
+	std::cout << "Computer turn using minimax..." << std::endl;
 	max(recursivity, player, i, j);
 	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
 	place_item(i, j, player, true);
@@ -269,14 +336,18 @@ int main(int argc, char** argv){
 					//computer();
 					//MINIMAX
 					//minimax(RECURSIVITY, HORIZONTAL);
-					//MEGAMAX
-					//megamax(RECURSIVITY, HORIZONTAL);
+					//negamax
+					//negamax(RECURSIVITY, HORIZONTAL);
 					//ALPHABETA
-					alphabeta(RECURSIVITY, HORIZONTAL);
+					//alphabeta(RECURSIVITY, HORIZONTAL);
+					alphabetakiller(RECURSIVITY, HORIZONTAL);
 				}
 			}
 		}
 	}
-
+	for(unsigned int i = 0; i < moves.size(); i++){
+		delete moves[i];
+	}
+	moves.clear();
 	return 0;
 }
