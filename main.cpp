@@ -123,7 +123,7 @@ int alphabetakillerhistory(int recursivity, direction dir, int &ri, int &rj, int
 			history_moves[i].resize(col_count);
 			history_moves[i].assign(col_count, 0);
 		}
-	}else if(recursivity == RECURSIVITY){
+	}else{
 		std::vector<killer_move> history;
 		for(int i = 0; i < row_count; i++){
 			for(int j = 0; j < col_count; j++){
@@ -159,6 +159,7 @@ int alphabetakillerhistory(int recursivity, direction dir, int &ri, int &rj, int
 				}
 			}
 		}
+		return alpha;
 	}
 
 	for(int i = 0; i < row_count; i ++){
