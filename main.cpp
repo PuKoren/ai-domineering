@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#define MINMAX_RECURSIVITY 3
+#define RECURSIVITY 3
 
 std::vector<std::vector<char> > board;
 
@@ -20,8 +20,10 @@ int get_possibilities(direction dir);
 void computer();
 int max(int recursivity, direction dir, int &ri, int &rj);
 int min(int recursivity, direction dir);
-void minmax(int recursivity, direction player);
+void minimax(int recursivity, direction player);
+void alphabeta(int recursivity, direction dir);
 int alphabeta(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
+void megamax(int recursivity, direction dir);
 int megamax(int recursivity, direction dir, int &ri, int &rj);
 
 
@@ -184,10 +186,29 @@ int max(int recursivity, direction dir, int &ri, int &rj){
 	return eval;
 }
 
-void minmax(int recursivity, direction player){
-	std::cout << "Computer turn using MinMax..." << std::endl;
+
+void megamax(int recursivity, direction dir){
 	int i = 0;
 	int j = 0;
+	std::cout << "Computer turn using megamax..." << std::endl;
+	megamax(RECURSIVITY, HORIZONTAL, i, j);
+	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
+	place_item(i, j, HORIZONTAL, true);
+}
+
+void alphabeta(int recursivity, direction dir){
+	int i = 0;
+	int j = 0;
+	std::cout << "Computer turn using alphabeta..." << std::endl;
+	alphabeta(RECURSIVITY, HORIZONTAL, i, j, -row_count*col_count, row_count*col_count);
+	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
+	place_item(i, j, HORIZONTAL, true);
+}
+
+void minimax(int recursivity, direction player){
+	int i = 0;
+	int j = 0;
+	std::cout << "Computer turn using MiniMax..." << std::endl;
 	max(recursivity, player, i, j);
 	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
 	place_item(i, j, player, true);
@@ -244,18 +265,14 @@ int main(int argc, char** argv){
 						std::cout << "You win." << std::endl;
 						break;
 					}
-					//REGULAR
+					//BASIC IA
 					//computer();
 					//MINIMAX
-					//minmax(MINMAX_RECURSIVITY, HORIZONTAL);
-					//MEGAMAX & ALPHABETA
-					int i = 0;
-					int j = 0;
-					std::cout << "Computer turn using alphabeta..." << std::endl;
-					//megaxmax(MINMAX_RECURSIVITY, HORIZONTAL, i, j);
-					alphabeta(MINMAX_RECURSIVITY, HORIZONTAL, i, j, -row_count*col_count, row_count*col_count);
-					std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
-					place_item(i, j, HORIZONTAL, true);
+					//minimax(RECURSIVITY, HORIZONTAL);
+					//MEGAMAX
+					//megamax(RECURSIVITY, HORIZONTAL);
+					//ALPHABETA
+					alphabeta(RECURSIVITY, HORIZONTAL);
 				}
 			}
 		}
