@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <math.h>
 #define RECURSIVITY 5
 
 std::vector<std::vector<char> > board;
@@ -10,7 +11,14 @@ enum direction{
 	VERTICAL = 'V',
 	HORIZONTAL = 'H'
 };
-
+struct killer_move{
+	int i;
+	int j;
+	direction dir;
+	int rate;
+};
+std::vector<killer_move*> moves;
+std::vector<std::vector<int> > history_moves;
 
 void draw_game();
 void input(int &command, const char* command_name);
@@ -20,6 +28,8 @@ int get_possibilities(direction dir);
 void computer();
 int max(int recursivity, direction dir, int &ri, int &rj);
 int min(int recursivity, direction dir);
+int alphabetakillerhistory(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
+void alphabetakillerhistory(int recursivity, direction dir);
 int alphabetakiller(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta);
 void alphabetakiller(int recursivity, direction dir);
 void minimax(int recursivity, direction player);
@@ -101,14 +111,76 @@ int get_possibilities(direction dir){
 	return sum;
 }
 
+int alphabetakillerhistory(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
+	if(recursivity == 0)
+		return get_possibilities(dir) - ((dir==HORIZONTAL)?get_possibilities(VERTICAL):get_possibilities(HORIZONTAL));
 
-struct killer_move{
-	int i;
-	int j;
-	direction dir;
-};
 
-std::vector<killer_move*> moves;
+	int fj, fi = 0;
+	if(history_moves.size() == 0){
+		history_moves.resize(row_count);
+		for(int i = 0; i < col_count; i++){
+			history_moves[i].resize(col_count);
+			history_moves[i].assign(col_count, 0);
+		}
+	}else if(recursivity == RECURSIVITY){
+		std::vector<killer_move> history;
+		for(int i = 0; i < row_count; i++){
+			for(int j = 0; j < col_count; j++){
+				if(history_moves[i][j] != 0){
+					history.push_back({i, j, dir, history_moves[i][j]});
+				}
+			}
+		}
+
+		for(unsigned int i = 0; i < history.size(); i++){
+			for(unsigned int j = 0; j < history.size(); j++){
+				if(history[i].rate > history[j].rate){
+					killer_move tmp = history[i];
+					history[i] = history[j];
+					history[j] = tmp;
+				}
+			}
+		}
+
+		for(unsigned int i = 0; i < history.size(); i++){
+			if(place_item(history[i].i, history[i].j, dir, true)){
+				int l = -alphabetakiller(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
+				history_moves[history[i].i][history[i].j] += 4;
+				remove_item(history[i].i, history[i].j, dir);
+				if(l > alpha){
+					alpha = l;
+					ri = history[i].i;
+					rj = history[i].j;
+					history_moves[history[i].i][history[i].j] += pow(4, recursivity);
+					if(alpha >= beta){
+						return beta;
+					}
+				}
+			}
+		}
+	}
+
+	for(int i = 0; i < row_count; i ++){
+		for(int j = 0; j < col_count; j ++){
+			if(place_item(i, j, dir, true)){
+				int l = -alphabetakiller(recursivity-1, ((dir==HORIZONTAL)?VERTICAL:HORIZONTAL), fi, fj, -beta, -alpha);
+				history_moves[i][j] += 4;
+				remove_item(i, j, dir);
+				if(l > alpha){
+					alpha = l;
+					ri = i;
+					rj = j;
+					history_moves[i][j] += pow(4, recursivity);
+					if(alpha >= beta){
+						return beta;
+					}
+				}
+			}
+		}
+	}
+	return alpha;
+}
 
 int alphabetakiller(int recursivity, direction dir, int &ri, int &rj, int alpha, int beta){
 	if(recursivity == 0)
@@ -144,10 +216,10 @@ int alphabetakiller(int recursivity, direction dir, int &ri, int &rj, int alpha,
 				remove_item(i, j, dir);
 				if(l > alpha){
 					alpha = l;
-					delete moves[recursivity-1];
-					moves[recursivity-1] = new killer_move{ri, rj, dir};
 					ri = i;
 					rj = j;
+					delete moves[recursivity-1];
+					moves[recursivity-1] = new killer_move{ri, rj, dir, 0};
 					if(alpha >= beta){
 						return beta;
 					}
@@ -245,6 +317,15 @@ int max(int recursivity, direction dir, int &ri, int &rj){
 	return eval;
 }
 
+void alphabetakillerhistory(int recursivity, direction dir){
+	int i = 0;
+	int j = 0;
+	std::cout << "Computer turn using alphabetakiller history..." << std::endl;
+	alphabetakillerhistory(RECURSIVITY, HORIZONTAL, i, j, -row_count*col_count, row_count*col_count);
+	std::cout << "Placed item on column " << j+1 << ", row " << i+1 << std::endl;
+	place_item(i, j, HORIZONTAL, true);
+}
+
 void alphabetakiller(int recursivity, direction dir){
 	int i = 0;
 	int j = 0;
@@ -340,7 +421,8 @@ int main(int argc, char** argv){
 					//negamax(RECURSIVITY, HORIZONTAL);
 					//ALPHABETA
 					//alphabeta(RECURSIVITY, HORIZONTAL);
-					alphabetakiller(RECURSIVITY, HORIZONTAL);
+					//alphabetakiller(RECURSIVITY, HORIZONTAL);
+					alphabetakillerhistory(RECURSIVITY, HORIZONTAL);
 				}
 			}
 		}
